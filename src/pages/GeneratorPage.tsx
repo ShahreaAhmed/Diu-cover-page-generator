@@ -6,8 +6,7 @@ import {
   FileSpreadsheet,
   AlertCircle,
   Eye,
-  Settings,
-  Maximize2
+  Settings
 } from 'lucide-react';
 import { CoverFormData, LabIndexFormData, DocumentType, FormErrors, StudentProfile } from '../types';
 import {
@@ -26,8 +25,6 @@ import { ExportToolbar } from '../components/ExportToolbar';
 import { PreviewZoomControls } from '../components/PreviewZoomControls';
 import { ResetConfirmModal } from '../components/ResetConfirmModal';
 import { StudentProfileModal } from '../components/StudentProfileModal';
-import { ExpandedPreviewModal } from '../components/ExpandedPreviewModal';
-import { SmallPreviewButton } from '../components/SmallPreviewButton';
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToImage, exportMultiplePagesToImages } from '../utils/imageExport';
 import { printDocument } from '../utils/printDocument';
@@ -94,7 +91,6 @@ export const GeneratorPage: React.FC<GeneratorPageProps> = ({
   const [scale, setScale] = useState<number>(0.75); // Comfortable preview scale
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isExpandedPreviewOpen, setIsExpandedPreviewOpen] = useState(false);
 
   // References for live preview rendering & export
   const documentExportRef = useRef<HTMLDivElement>(null);
@@ -397,20 +393,9 @@ export const GeneratorPage: React.FC<GeneratorPageProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Button that shows small preview and expands to larger view when clicked */}
-          <SmallPreviewButton
-            docType={docType}
-            studentName={docType === 'lab_index' ? labIndexData.studentName : coverData.studentName}
-            courseCode={docType === 'lab_index' ? labIndexData.courseCode : coverData.courseCode}
-            groupNumber={docType === 'lab_index' ? labIndexData.groupNumber : (coverData.groupNumber || coverData.labGroup)}
-            onClick={() => setIsExpandedPreviewOpen(true)}
-          />
-
-          <div className="hidden sm:flex items-center gap-2 px-2 text-xs text-slate-500 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Live A4 Preview</span>
-          </div>
+        <div className="flex items-center gap-2 px-3 text-xs text-slate-500 font-medium">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Real-time Live A4 Preview</span>
         </div>
       </div>
 
@@ -438,7 +423,6 @@ export const GeneratorPage: React.FC<GeneratorPageProps> = ({
               onNotify={onNotify}
               onOpenResetModal={() => setIsResetModalOpen(true)}
               onOpenProfileModal={() => setIsProfileModalOpen(true)}
-              onOpenExpandedPreview={() => setIsExpandedPreviewOpen(true)}
             />
           ) : (
             <GeneratorForm
@@ -448,7 +432,6 @@ export const GeneratorPage: React.FC<GeneratorPageProps> = ({
               onNotify={onNotify}
               onOpenResetModal={() => setIsResetModalOpen(true)}
               onOpenProfileModal={() => setIsProfileModalOpen(true)}
-              onOpenExpandedPreview={() => setIsExpandedPreviewOpen(true)}
             />
           )}
         </div>
@@ -473,30 +456,12 @@ export const GeneratorPage: React.FC<GeneratorPageProps> = ({
                   const width = window.innerWidth;
                   setScale(width < 640 ? 0.42 : width < 1024 ? 0.58 : 0.75);
                 }}
-                onExpand={() => setIsExpandedPreviewOpen(true)}
               />
             </div>
           </div>
 
           {/* Canvas Viewport */}
-          <div className="bg-slate-200/90 rounded-2xl border border-slate-300/80 p-3 sm:p-5 shadow-inner overflow-auto max-h-[calc(100vh-140px)] flex flex-col items-center relative group">
-            {/* Quick Expand Canvas Header */}
-            <div className="w-full flex items-center justify-between pb-2 mb-3 border-b border-slate-300/80 text-xs text-slate-600 no-print">
-              <span className="font-semibold text-slate-700 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Live A4 Preview (Academic Scale)
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsExpandedPreviewOpen(true)}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 hover:text-emerald-950 bg-white/90 hover:bg-white px-2.5 py-1 rounded-lg border border-slate-300 transition-colors shadow-2xs cursor-pointer"
-                title="Expand preview to full screen view"
-              >
-                <Maximize2 className="w-3 h-3 text-emerald-600" />
-                <span>Expand to Full Size</span>
-              </button>
-            </div>
-
+          <div className="bg-slate-200/90 rounded-2xl border border-slate-300/80 p-4 sm:p-6 shadow-inner overflow-auto max-h-[calc(100vh-140px)] flex flex-col items-center">
             {/* Scaled Preview Wrapper */}
             <div
               style={{
@@ -504,9 +469,7 @@ export const GeneratorPage: React.FC<GeneratorPageProps> = ({
                 transformOrigin: 'top center',
                 marginBottom: `${(scale - 1) * 310}mm` // Offsets whitespace collapse when scaled down
               }}
-              className="transition-transform duration-100 ease-out cursor-pointer"
-              onClick={() => setIsExpandedPreviewOpen(true)}
-              title="Click preview to expand to full size view"
+              className="transition-transform duration-100 ease-out"
             >
               {/* Actual A4 Documents (Export Targets) */}
               <div ref={documentExportRef} className="print-only-container">
@@ -536,27 +499,8 @@ export const GeneratorPage: React.FC<GeneratorPageProps> = ({
                 )}
               </div>
             </div>
-
-            {/* Subtle Hover Expand Pill Indicator */}
-            <div className="absolute bottom-4 right-4 z-20 pointer-events-none no-print opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <div className="bg-slate-900/90 text-white text-[11px] font-semibold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-xs flex items-center gap-1.5 border border-slate-700">
-                <Maximize2 className="w-3 h-3 text-emerald-400" />
-                <span>Click document to expand</span>
-              </div>
-            </div>
           </div>
         </div>
-      </div>
-
-      {/* Floating Small Preview / Expand Button for Mobile Devices */}
-      <div className="fixed bottom-4 right-4 z-40 lg:hidden no-print shadow-xl rounded-xl">
-        <SmallPreviewButton
-          docType={docType}
-          studentName={docType === 'lab_index' ? labIndexData.studentName : coverData.studentName}
-          courseCode={docType === 'lab_index' ? labIndexData.courseCode : coverData.courseCode}
-          groupNumber={docType === 'lab_index' ? labIndexData.groupNumber : (coverData.groupNumber || coverData.labGroup)}
-          onClick={() => setIsExpandedPreviewOpen(true)}
-        />
       </div>
 
       {/* Confirmation & Profile Modals */}
@@ -571,18 +515,6 @@ export const GeneratorPage: React.FC<GeneratorPageProps> = ({
         onClose={() => setIsProfileModalOpen(false)}
         onApplyProfile={handleApplyProfile}
         onNotify={onNotify}
-      />
-
-      {/* Large Expanded Document Preview Modal */}
-      <ExpandedPreviewModal
-        isOpen={isExpandedPreviewOpen}
-        onClose={() => setIsExpandedPreviewOpen(false)}
-        docType={docType}
-        coverData={coverData}
-        labIndexData={labIndexData}
-        onExportPDF={handleExportPDF}
-        onExportImage={handleExportImage}
-        onPrint={handlePrint}
       />
     </div>
   );

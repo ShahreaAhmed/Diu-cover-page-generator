@@ -49,14 +49,12 @@ export interface CoverFormData {
   batch: string;
   studentDepartment: string;
   levelTerm: string;
-  groupNumber?: string; // Optional group number (e.g. "03" or "05")
   labGroup?: string;
   groupMembers?: string;
 
   // Dates
   submissionDate: string; // YYYY-MM-DD
   performanceDate: string; // YYYY-MM-DD (optional, earlier than submissionDate)
-  dateFormat?: 'slash' | 'formal'; // 'slash' = DD/MM/YYYY, 'formal' = DD Month YYYY
 
   // Styling
   borderStyle: BorderStyle;
@@ -91,13 +89,9 @@ export interface LabIndexFormData {
   section: string;
   batch: string;
   levelTerm: string;
-  groupNumber?: string; // Optional group number (e.g. "03")
 
   instructorName: string;
   instructorDesignation: string;
-
-  includePerformanceDate?: boolean; // Whether to show performance date column on index cover page
-  dateFormat?: 'slash' | 'formal';
 
   experiments: ExperimentItem[];
 

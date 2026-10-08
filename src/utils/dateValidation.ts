@@ -9,37 +9,6 @@ export interface DateValidationResult {
 }
 
 /**
- * Format a YYYY-MM-DD date string to DD/MM/YYYY (as shown in the DIU official sample covers):
- * e.g. "2026-10-08" -> "08/10/2026"
- */
-export function formatSlashDate(dateStr?: string): string {
-  if (!dateStr || typeof dateStr !== 'string' || !dateStr.trim()) {
-    return '';
-  }
-
-  const parts = dateStr.split('-');
-  if (parts.length !== 3) {
-    return dateStr;
-  }
-
-  const year = parts[0];
-  const month = parts[1].padStart(2, '0');
-  const day = parts[2].padStart(2, '0');
-
-  return `${day}/${month}/${year}`;
-}
-
-/**
- * Formats a date based on chosen preference (defaults to 'slash' DD/MM/YYYY matching DIU sample)
- */
-export function formatCoverDate(dateStr?: string, format: 'slash' | 'formal' = 'slash'): string {
-  if (format === 'formal') {
-    return formatAcademicDate(dateStr);
-  }
-  return formatSlashDate(dateStr);
-}
-
-/**
  * Format a YYYY-MM-DD date string to formal academic English:
  * e.g. "2026-10-25" -> "25 October 2026"
  */

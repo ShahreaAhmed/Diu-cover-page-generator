@@ -1,7 +1,7 @@
 import React from 'react';
 import { LabIndexFormData, ExperimentItem } from '../types';
-import { DiuLogo, DiuWatermark } from '../assets/DiuLogo';
-import { formatCoverDate } from '../utils/dateValidation';
+import { DiuLogo } from '../assets/DiuLogo';
+import { formatAcademicDate } from '../utils/dateValidation';
 
 interface LabIndexTemplateProps {
   data: LabIndexFormData;
@@ -9,8 +9,8 @@ interface LabIndexTemplateProps {
 }
 
 // Maximum experiments per page to ensure strict A4 fitting without clipping
-const FIRST_PAGE_MAX_ROWS = 14;
-const SUBSEQUENT_PAGE_MAX_ROWS = 18;
+const FIRST_PAGE_MAX_ROWS = 8;
+const SUBSEQUENT_PAGE_MAX_ROWS = 12;
 
 export function paginateExperiments(experiments: ExperimentItem[]): ExperimentItem[][] {
   if (experiments.length === 0) {
@@ -20,10 +20,12 @@ export function paginateExperiments(experiments: ExperimentItem[]): ExperimentIt
   const pages: ExperimentItem[][] = [];
   let remaining = [...experiments];
 
+  // First page slice
   const firstPage = remaining.slice(0, FIRST_PAGE_MAX_ROWS);
   pages.push(firstPage);
   remaining = remaining.slice(FIRST_PAGE_MAX_ROWS);
 
+  // Subsequent pages
   while (remaining.length > 0) {
     const page = remaining.slice(0, SUBSEQUENT_PAGE_MAX_ROWS);
     pages.push(page);
@@ -46,6 +48,8 @@ export const SingleLabIndexPage: React.FC<SingleIndexPageProps> = ({
   data,
   pageExperiments,
   pageIndex,
+  totalPages,
+  isLastPage,
   id
 }) => {
   const isFirstPage = pageIndex === 0;
@@ -57,14 +61,10 @@ export const SingleLabIndexPage: React.FC<SingleIndexPageProps> = ({
       ? 'font-academic-editorial'
       : 'font-academic-sans';
 
-  const groupNo = data.groupNumber;
-  const showPerfDate = Boolean(data.includePerformanceDate);
-  const dateFormat = data.dateFormat || 'slash';
-
   return (
     <div
       id={id}
-      className={`a4-document-export a4-page-box bg-white text-slate-900 relative p-[14mm] flex flex-col justify-between overflow-hidden shadow-sm select-none ${fontClass}`}
+      className={`a4-document-export a4-page-box bg-white text-slate-900 relative p-[15mm] flex flex-col justify-between overflow-hidden shadow-sm select-none ${fontClass}`}
       style={{
         boxSizing: 'border-box',
         width: '210mm',
@@ -74,133 +74,143 @@ export const SingleLabIndexPage: React.FC<SingleIndexPageProps> = ({
         backgroundColor: '#ffffff'
       }}
     >
-      {/* Outer Single Clean Solid Border (Matches Sample Cover Image 4) */}
-      <div className="absolute inset-[8mm] pointer-events-none border-[2px] border-black" />
-
-      {/* Background Central DIU Shield Watermark */}
-      <DiuWatermark />
-
-      {/* Optional Group Number (Top Right inside border) */}
-      {groupNo && (
-        <div className="absolute top-[12mm] right-[12mm] z-20">
-          <div className="px-3 py-1 border-[1.5px] border-slate-900 bg-white font-bold text-xs uppercase tracking-wider text-slate-900 shadow-2xs">
-            Group: {groupNo}
-          </div>
+      {/* Outer Border Decorator */}
+      {data.borderStyle === 'classic_double' && (
+        <div className="absolute inset-[8mm] pointer-events-none border-[2.5px] border-slate-800 p-[2.5mm]">
+          <div className="w-full h-full border border-slate-700" />
         </div>
+      )}
+      {data.borderStyle === 'clean_box' && (
+        <div className="absolute inset-[8mm] pointer-events-none border-[1.5px] border-slate-800" />
+      )}
+      {data.borderStyle === 'formal_accent' && (
+        <div className="absolute inset-[8mm] pointer-events-none border-t-[4px] border-b-[4px] border-slate-800" />
       )}
 
       {/* Content Area */}
-      <div className="relative z-10 flex flex-col justify-start h-full w-full px-[2mm] py-[2mm]">
+      <div className="relative z-10 flex flex-col justify-between h-full w-full">
         {/* Top Header */}
         <div>
           {isFirstPage ? (
-            <div className="flex flex-col items-center pt-2 pb-3">
+            <div className="flex flex-col items-center text-center pb-2">
               {data.showLogo && (
-                <div className="mb-4">
-                  <DiuLogo size="md" monochrome={!data.logoColor} />
+                <div className="mb-2">
+                  <DiuLogo
+                    size="md"
+                    monochrome={!data.logoColor}
+                    variant="full"
+                  />
                 </div>
               )}
 
-              {/* Title: LAB REPORT INDEX with solid underline */}
-              <div className="text-center mt-1 mb-4">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-wide uppercase text-slate-900 inline-block border-b-2 border-slate-900 pb-0.5">
-                  LAB REPORT INDEX
-                </h1>
+              <h1 className="text-[18px] font-bold tracking-wide uppercase text-slate-900">
+                {data.universityName || 'Daffodil International University'}
+              </h1>
+
+              {data.department && (
+                <h2 className="text-[13px] font-semibold text-slate-700">
+                  {data.department}
+                </h2>
+              )}
+
+              {/* Title Header */}
+              <div className="w-full max-w-[170mm] border-t border-b-2 border-slate-900 py-1.5 my-2.5 bg-slate-50 text-center">
+                <span className="text-[15px] font-extrabold uppercase tracking-widest text-slate-900">
+                  LAB REPORT INDEX / TABLE OF EXPERIMENTS
+                </span>
               </div>
 
-              {/* Top Meta Details: Course Title, Course Code, Student Name, Student ID, Section */}
-              <div className="w-full grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:text-[14px] text-slate-900 mb-3 px-1 leading-snug">
-                <div className="space-y-1.5">
-                  <div>
-                    <span className="font-bold text-slate-900">Course Title: </span>
-                    <span className="text-slate-800">{data.courseTitle || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-900">Course Code: </span>
-                    <span className="text-slate-800">{data.courseCode || '—'}</span>
-                  </div>
+              {/* Course & Student Meta Box */}
+              <div className="w-full border border-slate-300 text-[11.5px] p-2.5 bg-slate-50/50 mb-3 grid grid-cols-2 gap-x-4 gap-y-1 text-left">
+                <div>
+                  <span className="font-bold text-slate-900">Course Title: </span>
+                  <span className="text-slate-800">{data.courseTitle || '—'}</span>
                 </div>
-
-                <div className="space-y-1.5">
-                  <div>
-                    <span className="font-bold text-slate-900">Student Name: </span>
-                    <span className="font-semibold text-slate-900">{data.studentName || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-900">Student ID: </span>
-                    <span className="font-semibold text-slate-900">{data.studentId || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-900">Section: </span>
-                    <span className="text-slate-800">{data.section || '—'}</span>
-                  </div>
+                <div>
+                  <span className="font-bold text-slate-900">Student Name: </span>
+                  <span className="text-slate-800 font-semibold">{data.studentName || '—'}</span>
+                </div>
+                <div>
+                  <span className="font-bold text-slate-900">Course Code: </span>
+                  <span className="text-slate-800">{data.courseCode || '—'}</span>
+                  {data.semester && <span className="ml-2 text-slate-600">({data.semester})</span>}
+                </div>
+                <div>
+                  <span className="font-bold text-slate-900">Student ID: </span>
+                  <span className="text-slate-800 font-semibold">{data.studentId || '—'}</span>
+                </div>
+                <div>
+                  <span className="font-bold text-slate-900">Laboratory: </span>
+                  <span className="text-slate-800">{data.labName || '—'}</span>
+                </div>
+                <div>
+                  {(data.section || data.batch) && (
+                    <span>
+                      {data.section && <><span className="font-bold text-slate-900">Sec: </span>{data.section} </>}
+                      {data.batch && <><span className="font-bold text-slate-900">Batch: </span>{data.batch} </>}
+                      {data.levelTerm && <><span className="font-bold text-slate-900">({data.levelTerm})</span></>}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
           ) : (
-            /* Continuation Header for subsequent pages */
-            <div className="border-b-2 border-slate-900 pb-2 mb-4 flex justify-between items-center text-xs">
-              <span className="font-bold uppercase tracking-wider text-slate-900">
-                LAB REPORT INDEX (Continuation) — {data.courseCode}
-              </span>
-              <span className="font-semibold text-slate-700">
-                ID: {data.studentId || '—'}
-              </span>
+            /* Continuation Header for Page 2+ */
+            <div className="border-b border-slate-400 pb-2 mb-3 flex justify-between items-center text-[12px]">
+              <div>
+                <span className="font-bold uppercase tracking-wider text-slate-900">
+                  Lab Report Index (Continuation)
+                </span>
+                <span className="text-slate-600 ml-2">
+                  | {data.courseCode} - {data.courseTitle}
+                </span>
+              </div>
+              <div className="font-semibold text-slate-700">
+                Student ID: {data.studentId || '—'}
+              </div>
             </div>
           )}
 
-          {/* ================= EXPERIMENTS TABLE (Matches Image 4 Exactly) ================= */}
-          <div className="w-full overflow-hidden border border-black bg-white">
-            <table className="w-full text-left border-collapse text-xs sm:text-[13px]">
+          {/* ================= EXPERIMENTS TABLE ================= */}
+          <div className="w-full overflow-hidden border border-slate-900">
+            <table className="w-full text-left border-collapse text-[11px]">
               <thead>
-                <tr className="bg-white text-slate-900 font-bold border-b border-black text-center text-xs sm:text-[13px]">
-                  <th className="py-2.5 px-2 border-r border-black w-[70px]">Exp. No</th>
-                  {showPerfDate ? (
-                    <>
-                      <th className="py-2.5 px-2 border-r border-black w-[100px]">Perf. Date</th>
-                      <th className="py-2.5 px-2 border-r border-black w-[100px]">Sub. Date</th>
-                    </>
-                  ) : (
-                    <th className="py-2.5 px-2 border-r border-black w-[110px]">Date</th>
-                  )}
-                  <th className="py-2.5 px-3 border-r border-black text-left">Name of Experiment</th>
-                  <th className="py-2.5 px-2 border-r border-black w-[80px]">Page No</th>
-                  <th className="py-2.5 px-2 w-[90px]">Remarks</th>
+                <tr className="bg-slate-100 text-slate-900 font-bold border-b border-slate-900 text-[10.5px]">
+                  <th className="py-2 px-1.5 border-r border-slate-400 text-center w-[30px]">SL</th>
+                  <th className="py-2 px-2 border-r border-slate-400 text-center w-[65px]">Exp. No</th>
+                  <th className="py-2 px-2.5 border-r border-slate-400">Name of the Experiment</th>
+                  <th className="py-2 px-1.5 border-r border-slate-400 text-center w-[78px]">Performance Date</th>
+                  <th className="py-2 px-1.5 border-r border-slate-400 text-center w-[78px]">Submission Date</th>
+                  <th className="py-2 px-1 border-r border-slate-400 text-center w-[48px]">Page No</th>
+                  <th className="py-2 px-1.5 text-center w-[60px]">Remarks</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-300">
                 {pageExperiments.map((exp) => {
-                  const perfDate = formatCoverDate(exp.performanceDate, dateFormat);
-                  const subDate = formatCoverDate(exp.submissionDate, dateFormat);
+                  const perfDate = formatAcademicDate(exp.performanceDate);
+                  const subDate = formatAcademicDate(exp.submissionDate);
 
                   return (
-                    <tr key={exp.id} className="border-b border-black text-slate-900">
-                      <td className="py-2.5 px-2 text-center border-r border-black font-semibold">
-                        {exp.experimentNo ? exp.experimentNo.replace(/exp\.?\s*/i, '') : exp.sl}
+                    <tr key={exp.id} className="text-slate-900">
+                      <td className="py-2 px-1.5 text-center border-r border-slate-300 font-semibold">
+                        {exp.sl}
                       </td>
-
-                      {showPerfDate ? (
-                        <>
-                          <td className="py-2.5 px-1.5 text-center border-r border-black text-[12px]">
-                            {perfDate || '—'}
-                          </td>
-                          <td className="py-2.5 px-1.5 text-center border-r border-black text-[12px] font-medium">
-                            {subDate || '—'}
-                          </td>
-                        </>
-                      ) : (
-                        <td className="py-2.5 px-1.5 text-center border-r border-black text-[12.5px] font-medium">
-                          {subDate || perfDate || '—'}
-                        </td>
-                      )}
-
-                      <td className="py-2.5 px-3 border-r border-black font-medium leading-snug">
+                      <td className="py-2 px-1.5 text-center border-r border-slate-300 font-medium">
+                        {exp.experimentNo || `Exp ${exp.sl}`}
+                      </td>
+                      <td className="py-2 px-2.5 border-r border-slate-300 font-medium leading-snug">
                         {exp.experimentName || '—'}
                       </td>
-                      <td className="py-2.5 px-1.5 text-center border-r border-black font-medium text-[12px]">
-                        {exp.pageNo || ''}
+                      <td className="py-2 px-1 text-center border-r border-slate-300 text-[10px] leading-tight">
+                        {perfDate || '—'}
                       </td>
-                      <td className="py-2.5 px-1.5 text-center text-[12px] text-slate-800">
+                      <td className="py-2 px-1 text-center border-r border-slate-300 text-[10px] leading-tight font-medium">
+                        {subDate || '—'}
+                      </td>
+                      <td className="py-2 px-1 text-center border-r border-slate-300 font-medium text-[10px]">
+                        {exp.pageNo || '—'}
+                      </td>
+                      <td className="py-2 px-1 text-center text-[10px] text-slate-700">
                         {exp.remarks || ''}
                       </td>
                     </tr>
@@ -211,7 +221,42 @@ export const SingleLabIndexPage: React.FC<SingleIndexPageProps> = ({
           </div>
         </div>
 
-        {/* Note: NO footer branding or page numbers at the bottom as explicitly requested by user */}
+        {/* ================= BOTTOM SIGNATURE SECTION ================= */}
+        <div>
+          {isLastPage ? (
+            <div className="pt-6 pb-2 grid grid-cols-2 gap-12 w-full text-center">
+              <div>
+                <div className="w-44 border-b border-slate-900 mx-auto mb-1.5" />
+                <p className="text-[11.5px] font-bold text-slate-900 uppercase tracking-wide">
+                  Signature of the Student
+                </p>
+                <p className="text-[10px] text-slate-600">Date: ____________________</p>
+              </div>
+
+              <div>
+                <div className="w-48 border-b border-slate-900 mx-auto mb-1.5" />
+                <p className="text-[11.5px] font-bold text-slate-900 uppercase tracking-wide">
+                  Signature of the Teacher
+                </p>
+                <p className="text-[10px] text-slate-600">
+                  {data.instructorName ? data.instructorName : 'Course Instructor with Date'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-right text-[10.5px] text-slate-500 italic pb-2">
+              Continued on next page...
+            </div>
+          )}
+
+          {/* Footer page indicator */}
+          <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-[10px] text-slate-500">
+            <span>Daffodil International University • Lab Report Index</span>
+            <span className="font-semibold text-slate-700">
+              Page {pageIndex + 1} of {totalPages}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
