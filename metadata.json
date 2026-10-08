@@ -1,0 +1,6 @@
+{
+  "name": "DIU Cover Page Generator",
+  "description": "Professional academic cover page and lab report generator for Daffodil International University students with live A4 preview, PDF, and image export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
